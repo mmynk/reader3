@@ -8,6 +8,7 @@ import shutil
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any
 from datetime import datetime
+from pathlib import Path
 from urllib.parse import unquote
 
 import ebooklib
@@ -300,8 +301,10 @@ if __name__ == "__main__":
         sys.exit(1)
 
     epub_file = sys.argv[1]
-    assert os.path.exists(epub_file), "File not found."
-    out_dir = os.path.splitext(epub_file)[0] + "_data"
+    epub_path = Path(epub_file)
+    assert epub_path.exists(), "File not found."
+    out_dir = Path() / epub_path.stem
+    out_dir = str(out_dir) + "_data"
 
     book_obj = process_epub(epub_file, out_dir)
     save_to_pickle(book_obj, out_dir)
