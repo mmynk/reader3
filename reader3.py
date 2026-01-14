@@ -293,6 +293,10 @@ def save_to_pickle(book: Book, output_dir: str):
 
 # --- CLI ---
 
+def is_epub_file(path: Path):
+    return path.suffix == '.epub'
+
+
 if __name__ == "__main__":
 
     import sys
@@ -300,17 +304,32 @@ if __name__ == "__main__":
         print("Usage: python reader3.py <file.epub>")
         sys.exit(1)
 
-    epub_file = sys.argv[1]
-    epub_path = Path(epub_file)
-    assert epub_path.exists(), "File not found."
-    out_dir = Path() / epub_path.stem
-    out_dir = str(out_dir) + "_data"
+    files = []
+    for arg in sys.argv[1:]:
+        path = Path(arg)
 
-    book_obj = process_epub(epub_file, out_dir)
-    save_to_pickle(book_obj, out_dir)
-    print("\n--- Summary ---")
-    print(f"Title: {book_obj.metadata.title}")
-    print(f"Authors: {', '.join(book_obj.metadata.authors)}")
-    print(f"Physical Files (Spine): {len(book_obj.spine)}")
-    print(f"TOC Root Items: {len(book_obj.toc)}")
-    print(f"Images extracted: {len(book_obj.images)}")
+        if not path.exists():
+            print(f"No book found at path: {path}")
+            continue
+
+        if path.is_dir():
+            for f in path.iterdir():
+                if is_epub_file(f):
+                    files.append(f)
+        elif is_epub_file(path):
+            files.append(path)
+
+
+    for epub_file in files:
+        out_dir = Path() / epub_file.stem
+        out_dir = str(out_dir) + "_data"
+
+        book_obj = process_epub(epub_file, out_dir)
+        save_to_pickle(book_obj, out_dir)
+        print("\n--- Summary ---")
+        print(f"Title: {book_obj.metadata.title}")
+        print(f"Authors: {', '.join(book_obj.metadata.authors)}")
+        print(f"Physical Files (Spine): {len(book_obj.spine)}")
+        print(f"TOC Root Items: {len(book_obj.toc)}")
+        print(f"Images extracted: {len(book_obj.images)}")
+        print("==============================\n")
